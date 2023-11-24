@@ -16,8 +16,26 @@ class EventViewSet(viewsets.ModelViewSet):
 
 class MediaItemList(generics.ListCreateAPIView):
     def get_queryset(self):
+        # Get the limit parameter from the query parameters
+        limit = self.request.query_params.get("limit", None)
+        # Get the sort parameter from the query parameters
+        sort_by_reader = self.request.query_params.get("sort_by_reader", False)
+
         # Get all MediaItems and order them by event_date in descending order
         queryset = MediaItem.objects.all().order_by("-event_date")
+
+        # Check if the user has requested to sort by reader_count
+        if sort_by_reader:
+            queryset = queryset.order_by("-reader_count")
+
+        if limit:
+            try:
+                limit = int(limit)
+                queryset = queryset[:limit]
+            except ValueError:
+                # Handle the case where the provided limit is not a valid integer
+                pass
+
         return queryset
 
     serializer_class = MediaItemSerializer
