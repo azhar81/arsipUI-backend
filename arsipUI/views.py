@@ -1,6 +1,9 @@
 from rest_framework import generics, viewsets, filters
 from .models import MediaItem, Tag, Event
 from .serializers import MediaItemSerializer, TagSerializer, EventSerializer
+from .permissions import IsContributorOrReadOnly
+from users.permissions import IsContributor
+from rest_framework import permissions
 from rest_framework.response import Response
 
 
@@ -14,7 +17,19 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
 
 
-class MediaItemList(generics.ListCreateAPIView):
+class MediaItemList(generics.ListAPIView):
+    serializer_class = MediaItemSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        "title",
+        "description",
+        "tags__name",
+        "tag_names",
+        "event_date",
+        "event__name",
+    ]
+
+    # def create(self, request, *args, **kwargs):
     def get_queryset(self):
         # Get the limit parameter from the query parameters
         limit = self.request.query_params.get("limit", None)
@@ -38,19 +53,23 @@ class MediaItemList(generics.ListCreateAPIView):
 
         return queryset
 
+    def perform_create(self, serializer):
+        # Attach the current user as the contributor
+        serializer.save(contributor=self.request.user)
+
+
+class MediaItemCreate(generics.CreateAPIView):
+    queryset = MediaItem.objects.all()
     serializer_class = MediaItemSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = [
-        "title",
-        "description",
-        "tags__name",
-        "tag_names",
-        "event_date",
-        "event__name",
-    ]
+    permission_classes = [permissions.IsAuthenticated, IsContributor]
+
+    def perform_create(self, serializer):
+        # Attach the current user as the contributor
+        serializer.save(contributor=self.request.user)
 
 
 class MediaItemDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsContributorOrReadOnly]
     queryset = MediaItem.objects.all()
     serializer_class = MediaItemSerializer
 

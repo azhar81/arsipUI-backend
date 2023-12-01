@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Tag(models.Model):
@@ -33,6 +34,9 @@ class MediaItem(models.Model):
         (AUDIO, "Audio"),
     ]
     title = models.CharField(max_length=255)
+    contributor = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True, default=None
+    )
     description = models.TextField()
     file_path = models.FileField(upload_to=media_file_path)
     upload_date = models.DateTimeField(auto_now_add=True)

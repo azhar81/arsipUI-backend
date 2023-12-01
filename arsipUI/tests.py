@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from .models import MediaItem, Tag
 from .serializers import MediaItemSerializer
+from users.tests import create_contributor
 
 
 def create_dummy_image(width=100, height=100):
@@ -40,11 +41,27 @@ def dummy_image_data(string):
 
 class MediaItemTests(TestCase):
     def setUp(self):
+        # Create a test user
+        self.contributor_user = create_contributor(
+            username="contributor", password="password123"
+        )
         # Create sample data for testing
         self.media_item = MediaItem.objects.create(
             title="Test Media Item",
             description="A test media item",
-            # Add other necessary fields
+        )
+        # Create an API client
+        self.client = APIClient()
+
+    def test_media_item_detail(self):
+        # Ensure that the media item detail endpoint returns the correct data
+        response = self.client.get(f"/arsip/{self.media_item.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check if the reader count has increased after retrieving the media item
+        self.assertEqual(
+            self.media_item.reader_count + 1,
+            MediaItem.objects.get(id=self.media_item.id).reader_count,
         )
 
     def test_media_item_list_view(self):
@@ -59,34 +76,24 @@ class MediaItemTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Media Item")
 
-    def test_create_media_item(self):
-        # Data to be sent in the POST request
+    def test_media_item_create(self):
+        # Ensure that a new media item can be created
         data = dummy_image_data("test")
-
-        # URL for the view that handles media item creation
-        url = reverse("media-list")
-
-        # Perform the POST request
-        response = self.client.post(url, data, format="json")
-
-        # Check the response status code
+        self.client.force_authenticate(user=self.contributor_user)
+        response = self.client.post("/arsip/create", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Check that a new media item was created in the database
-        self.assertEqual(
-            MediaItem.objects.count(), 2
-        )  # 2 because a media item was created in the set up
-
-        # Retrieve the newly created media item from the database
-        media_item = MediaItem.objects.get(id=response.data["id"])
+        # Check if the contributor is correctly set
+        created_media_item = MediaItem.objects.get(id=response.data["id"])
+        self.assertEqual(created_media_item.contributor, self.contributor_user)
 
         # Check that the data in the response matches the expected data
         self.assertEqual(response.data["title"], data["title"])
         self.assertEqual(response.data["description"], data["description"])
 
         # Check that the data in the database matches the expected data
-        self.assertEqual(media_item.title, data["title"])
-        self.assertEqual(media_item.description, data["description"])
+        self.assertEqual(created_media_item.title, data["title"])
+        self.assertEqual(created_media_item.description, data["description"])
 
     def test_tags_applied_correctly(self):
         data = dummy_image_data("test")
@@ -107,11 +114,8 @@ class MediaItemTests(TestCase):
         data = dummy_image_data("test")
         data["tag_names"] = "tag1;tag2;tag3"
 
-        # URL for the view that handles media item creation
-        url = reverse("media-list")
-
-        # Perform the POST request
-        response = self.client.post(url, data, format="json")
+        self.client.force_authenticate(user=self.contributor_user)
+        response = self.client.post("/arsip/create", data)
 
         media_item = MediaItem.objects.get(id=response.data["id"])
         tags = media_item.tags.all()
