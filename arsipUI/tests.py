@@ -4,10 +4,10 @@ from datetime import date
 from django.test import TestCase
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.test import APIClient
-from .models import MediaItem, Tag
-from .serializers import MediaItemSerializer
+from .models import MediaItem, Tag, Event, Event_Category
 from users.tests import create_contributor, create_verificator
 
 
@@ -33,6 +33,7 @@ def dummy_image_data(string):
         "category": "image",
         "event_date": "1000-12-01",
         "event_name": string,
+        "event_category": string,
         "tag_names": string,
     }
 
@@ -49,9 +50,22 @@ class MediaItemTests(TestCase):
             username="verificator", password="password123"
         )
         # Create sample data for testing
+        self.tag = Tag.objects.create(
+            name = "Test"
+        )
+        self.event_category = Event_Category.objects.create(
+            name="Test"
+        )
+        self.event = Event.objects.create(
+            name="Test Event",
+            date="1000-12-01",
+            category=self.event_category
+        )
         self.media_item = MediaItem.objects.create(
             title="Test Media Item",
             description="A test media item",
+            event=self.event,
+            tag_names="test"
         )
         # Create an API client
         self.client = APIClient()
@@ -154,5 +168,3 @@ class MediaItemTests(TestCase):
         self.client.force_authenticate(user=self.contributor_user)
         response = self.client.get(f'/arsip/{self.media_item.id}/reject')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-
