@@ -2,7 +2,7 @@ from rest_framework import generics, viewsets, filters
 from .models import MediaItem, Tag, Event
 from .serializers import MediaItemSerializer, TagSerializer, EventSerializer
 from .permissions import IsContributorOrReadOnly
-from users.permissions import IsContributor
+from users.permissions import IsContributor, IsVerificator
 from rest_framework import permissions
 from rest_framework.response import Response
 
@@ -55,7 +55,7 @@ class MediaItemList(generics.ListAPIView):
 
     def perform_create(self, serializer):
         # Attach the current user as the contributor
-        serializer.save(contributor=self.request.user)
+        serializer.save(contributor=self.request.user, status="waitlist")
 
 
 class MediaItemCreate(generics.CreateAPIView):
@@ -82,3 +82,21 @@ class MediaItemDetail(generics.RetrieveUpdateDestroyAPIView):
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+class MediaItemApproveView(generics.UpdateAPIView):
+    queryset = MediaItem.objects.all()
+    serializer_class = MediaItemSerializer
+    permission_classes = [permissions.IsAuthenticated, IsVerificator]
+
+    def perform_update(self, serializer):
+        # Verificators can update the 'is_approved' field
+        serializer.save(status="approved")
+
+class MediaItemRejectView(generics.UpdateAPIView):
+    queryset = MediaItem.objects.all()
+    serializer_class = MediaItemSerializer
+    permission_classes = [permissions.IsAuthenticated, IsVerificator]
+
+    def perform_update(self, serializer):
+        # Verificators can update the 'is_approved' field
+        serializer.save(status="rejected")

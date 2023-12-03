@@ -33,6 +33,17 @@ class MediaItem(models.Model):
         (IMAGE, "Image"),
         (AUDIO, "Audio"),
     ]
+
+    WAITLIST = "waitlist"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+    STATUS_CHOICES = [
+        (WAITLIST, "Waitlist"),
+        (APPROVED, "Approved"),
+        (REJECTED, "Rejected"),
+    ]
+
     title = models.CharField(max_length=255)
     contributor = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True, default=None
@@ -41,6 +52,7 @@ class MediaItem(models.Model):
     file_path = models.FileField(upload_to=media_file_path)
     upload_date = models.DateTimeField(auto_now_add=True)
     category = models.CharField(max_length=5, choices=CATEGORY_CHOICES)
+    status = models.CharField(max_length=8, choices=STATUS_CHOICES, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
     event_date = models.DateField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
@@ -54,6 +66,10 @@ class MediaItem(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
+        # On create:
+        if self.id == None:
+            self.status = self.WAITLIST
+
         # Check if event exists, create if not
         if not self.event_id and self.event_name and self.event_date:
             event, created = Event.objects.get_or_create(

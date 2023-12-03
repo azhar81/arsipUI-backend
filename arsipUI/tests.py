@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from .models import MediaItem, Tag
 from .serializers import MediaItemSerializer
-from users.tests import create_contributor
+from users.tests import create_contributor, create_verificator
 
 
 def create_dummy_image(width=100, height=100):
@@ -44,6 +44,9 @@ class MediaItemTests(TestCase):
         # Create a test user
         self.contributor_user = create_contributor(
             username="contributor", password="password123"
+        )
+        self.verificator_user = create_verificator(
+            username="verificator", password="password123"
         )
         # Create sample data for testing
         self.media_item = MediaItem.objects.create(
@@ -125,3 +128,31 @@ class MediaItemTests(TestCase):
         self.assertEqual(tags[0].name, "tag1")
         self.assertEqual(tags[1].name, "tag2")
         self.assertEqual(tags[2].name, "tag3")
+
+    def test_media_item_approve(self):
+        # Ensure that a verificator can approve a media item
+        self.client.force_authenticate(user=self.verificator_user)
+        response = self.client.patch(f'/arsip/{self.media_item.id}/approve')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], "approved")
+
+    def test_media_item_reject(self):
+        # Ensure that a verificator can reject a media item
+        self.client.force_authenticate(user=self.verificator_user)
+        response = self.client.patch(f'/arsip/{self.media_item.id}/reject')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], "rejected")
+
+    def test_media_item_approve_by_contributor(self):
+        # Ensure that a contributor cannot approve a media item
+        self.client.force_authenticate(user=self.contributor_user)
+        response = self.client.patch(f'/arsip/{self.media_item.id}/approve')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_media_item_reject_by_contributor(self):
+        # Ensure that a contributor cannot reject a media item
+        self.client.force_authenticate(user=self.contributor_user)
+        response = self.client.get(f'/arsip/{self.media_item.id}/reject')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+

@@ -8,3 +8,9 @@ def create_contributor(username, password):
     contributor = UserProfile.objects.create(user=user, user_type="contributor")
 
     return user
+
+def create_verificator(username, password):
+    user = User.objects.create_user(username=username, password=password)
+    contributor = UserProfile.objects.create(user=user, user_type="verificator")
+
+    return user
