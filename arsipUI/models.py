@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 
 
 class Tag(models.Model):
@@ -55,7 +54,22 @@ class MediaItem(models.Model):
 
     title = models.CharField(max_length=255)
     contributor = models.ForeignKey(
-        User, on_delete=models.CASCADE, blank=True, null=True, default=None
+        User,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        default=None,
+        editable=False,
+        related_name='contributions'
+    )
+    verificator = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        default=None,
+        editable=False,
+        related_name='verifications'
     )
     description = models.TextField()
     file_path = models.FileField(upload_to=media_file_path)

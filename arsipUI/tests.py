@@ -4,7 +4,6 @@ from datetime import date
 from django.test import TestCase
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.test import APIClient
 from .models import MediaItem, Tag, Event, Event_Category
@@ -149,6 +148,7 @@ class MediaItemTests(TestCase):
         response = self.client.patch(f'/arsip/{self.media_item.id}/approve')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], "approved")
+        self.assertEqual(response.data['verificator'], self.verificator_user.id)
 
     def test_media_item_reject(self):
         # Ensure that a verificator can reject a media item
@@ -156,6 +156,7 @@ class MediaItemTests(TestCase):
         response = self.client.patch(f'/arsip/{self.media_item.id}/reject')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], "rejected")
+        self.assertEqual(response.data['verificator'], self.verificator_user.id)
 
     def test_media_item_approve_by_contributor(self):
         # Ensure that a contributor cannot approve a media item

@@ -90,7 +90,7 @@ class MediaItemApproveView(generics.UpdateAPIView):
 
     def perform_update(self, serializer):
         # Verificators can update the 'is_approved' field
-        serializer.save(status="approved")
+        serializer.save(status="approved", verificator=self.request.user)
 
 class MediaItemRejectView(generics.UpdateAPIView):
     queryset = MediaItem.objects.all()
@@ -99,4 +99,4 @@ class MediaItemRejectView(generics.UpdateAPIView):
 
     def perform_update(self, serializer):
         # Verificators can update the 'is_approved' field
-        serializer.save(status="rejected")
+        serializer.save(status="rejected", verificator=self.request.user)
