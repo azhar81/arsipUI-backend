@@ -48,6 +48,9 @@ class MediaItemTests(TestCase):
         self.verificator_user = create_verificator(
             username="verificator", password="password123"
         )
+        self.verificator_user_alternate = create_verificator(
+            username="verificator2", password="password123"
+        )
         # Create sample data for testing
         self.tag = Tag.objects.create(
             name = "Test"
@@ -145,7 +148,7 @@ class MediaItemTests(TestCase):
     def test_media_item_approve(self):
         # Ensure that a verificator can approve a media item
         self.client.force_authenticate(user=self.verificator_user)
-        response = self.client.patch(f'/arsip/{self.media_item.id}/approve')
+        response = self.client.get(f'/arsip/{self.media_item.id}/approve')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], "approved")
         self.assertEqual(response.data['verificator'], self.verificator_user.id)
@@ -153,19 +156,47 @@ class MediaItemTests(TestCase):
     def test_media_item_reject(self):
         # Ensure that a verificator can reject a media item
         self.client.force_authenticate(user=self.verificator_user)
-        response = self.client.patch(f'/arsip/{self.media_item.id}/reject')
+        response = self.client.get(f'/arsip/{self.media_item.id}/reject')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], "rejected")
         self.assertEqual(response.data['verificator'], self.verificator_user.id)
+    
+    def test_media_item_cancel_approval(self):
+        self.client.force_authenticate(user=self.verificator_user)
+        # Approve first
+        self.client.get(f'/arsip/{self.media_item.id}/approve')
+        # Ensure that a verificator can cancel a media item's approval        
+        response = self.client.get(f'/arsip/{self.media_item.id}/cancel')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], "waitlist")
+        self.assertEqual(response.data['verificator'], None)
 
     def test_media_item_approve_by_contributor(self):
         # Ensure that a contributor cannot approve a media item
         self.client.force_authenticate(user=self.contributor_user)
-        response = self.client.patch(f'/arsip/{self.media_item.id}/approve')
+        response = self.client.get(f'/arsip/{self.media_item.id}/approve')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_media_item_reject_by_contributor(self):
         # Ensure that a contributor cannot reject a media item
         self.client.force_authenticate(user=self.contributor_user)
         response = self.client.get(f'/arsip/{self.media_item.id}/reject')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_media_item_cancel_approval_by_contributor(self):
+        self.client.force_authenticate(user=self.verificator_user)
+        # Approve first
+        self.client.get(f'/arsip/{self.media_item.id}/approve')
+        # Ensure that a verificator can cancel a media item's approval    
+        self.client.force_authenticate(user=self.contributor_user)
+        response = self.client.get(f'/arsip/{self.media_item.id}/cancel')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_media_item_cancel_approval_by_other_verificator(self):
+        self.client.force_authenticate(user=self.verificator_user)
+        # Approve first
+        self.client.get(f'/arsip/{self.media_item.id}/approve')
+        # Ensure that a verificator can cancel a media item's approval
+        self.client.force_authenticate(user=self.verificator_user_alternate)      
+        response = self.client.get(f'/arsip/{self.media_item.id}/cancel')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

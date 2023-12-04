@@ -1,7 +1,7 @@
 from rest_framework import generics, viewsets, filters
 from .models import MediaItem, Tag, Event
 from .serializers import MediaItemSerializer, TagSerializer, EventSerializer
-from .permissions import IsContributorOrReadOnly
+from .permissions import IsContributorOrReadOnly, IsObjectVerificator
 from users.permissions import IsContributor, IsVerificator
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -83,20 +83,47 @@ class MediaItemDetail(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-class MediaItemApproveView(generics.UpdateAPIView):
+class MediaItemApproveView(generics.RetrieveAPIView):
+    queryset = MediaItem.objects.all()
+    serializer_class = MediaItemSerializer
+    permission_classes = [permissions.IsAuthenticated, IsVerificator]
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.status = "approved"
+        instance.verificator = request.user
+        instance.save()
+        
+        serializer = self.get_serializer(instance)
+        
+        return Response(serializer.data)
+
+class MediaItemRejectView(generics.RetrieveAPIView):
     queryset = MediaItem.objects.all()
     serializer_class = MediaItemSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerificator]
 
-    def perform_update(self, serializer):
-        # Verificators can update the 'is_approved' field
-        serializer.save(status="approved", verificator=self.request.user)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.status = "rejected"
+        instance.verificator = request.user
+        instance.save()
+        
+        serializer = self.get_serializer(instance)
+        
+        return Response(serializer.data)
 
-class MediaItemRejectView(generics.UpdateAPIView):
+class MediaItemCancelView(generics.RetrieveAPIView):
     queryset = MediaItem.objects.all()
     serializer_class = MediaItemSerializer
-    permission_classes = [permissions.IsAuthenticated, IsVerificator]
+    permission_classes = [permissions.IsAuthenticated, IsVerificator, IsObjectVerificator]
 
-    def perform_update(self, serializer):
-        # Verificators can update the 'is_approved' field
-        serializer.save(status="rejected", verificator=self.request.user)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.status = "waitlist"
+        instance.verificator = None
+        instance.save()
+        
+        serializer = self.get_serializer(instance)
+        
+        return Response(serializer.data)
