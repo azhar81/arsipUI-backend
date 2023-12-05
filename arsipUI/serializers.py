@@ -29,7 +29,19 @@ class MediaItemReadSerializer(serializers.ModelSerializer):
     file_paths = FileSerializer(many=True)
     class Meta:
         model = MediaItem
-        fields = "__all__"
+        fields = [
+            'id',
+            'title',
+            'description',
+            'upload_date',
+            'event',
+            'file_paths',
+            'tags',
+            'status',
+            'reader_count',
+            'contributor',
+            'verificator',
+            ]
 
 class MediaItemSerializer(serializers.ModelSerializer):
     file_paths = serializers.ListField(child=serializers.FileField(max_length=None), write_only=True, required=False)
