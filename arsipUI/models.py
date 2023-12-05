@@ -1,4 +1,6 @@
+import os
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 
@@ -24,24 +26,41 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+    
+def get_file_type(value):
+    img_type = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif', '.webp', '.svg']
+    vid_type = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.3gp', '.3gpp']
+    doc_type = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.txt', '.rtf', '.odt', '.ods', '.odp', '.csv']
+    
+    ext = os.path.splitext(value)[1].lower()
+    
+    if ext in img_type:
+        return "img"
+    elif ext in vid_type:
+        return "vid"
+    elif ext in doc_type:
+        return "doc"
+    else:
+        return "others"
 
+def validate_file_extension(value):
+    if get_file_type(value.name) == None:
+        raise ValidationError('Unsupported file extension.')
 
 def media_file_path(instance, filename):
+    category = get_file_type(filename)
+    event_date = instance.media_items.first().event_date
     # Define the file path for multimedia uploads
-    return f"{instance.category}/{instance.event_date.year}/{instance.event_date.month}/{filename}"
+    return f"{category}/{event_date.year}/{event_date.month}/{filename}"
 
+class File(models.Model):
+    file = models.FileField(upload_to=media_file_path, validators=[validate_file_extension], blank=True)
+    # media_item = models.ForeignKey(MediaItem, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.file.name
 
 class MediaItem(models.Model):
-    VIDEO = "video"
-    IMAGE = "image"
-    AUDIO = "audio"
-
-    CATEGORY_CHOICES = [
-        (VIDEO, "Video"),
-        (IMAGE, "Image"),
-        (AUDIO, "Audio"),
-    ]
-
     WAITLIST = "waitlist"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -72,9 +91,8 @@ class MediaItem(models.Model):
         related_name='verifications'
     )
     description = models.TextField()
-    file_path = models.FileField(upload_to=media_file_path)
+    file_paths = models.ManyToManyField(File, related_name='media_items')
     upload_date = models.DateTimeField(auto_now_add=True)
-    category = models.CharField(max_length=5, choices=CATEGORY_CHOICES)
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
@@ -96,6 +114,14 @@ class MediaItem(models.Model):
                 Tag.objects.get_or_create(name=tag_name)[0] for tag_name in tag_names
             ]
             self.tags.set(tags)
+    
+    # def handle_files(self, **args):
+    #     # Populate file_paths based on input
+    #     for file_path in self.file_paths.all():
+    #         file_instance = File.objects.create()
+    #         self.file_paths.add(file_instance)
+    #         file_instance.file = file_path
+    #         file_instance.save()
 
     def __str__(self):
         return self.title
@@ -122,4 +148,3 @@ class MediaItem(models.Model):
         # Handle tags
         if self.tag_names != "":
             self.handle_tags()
-

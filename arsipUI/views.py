@@ -1,20 +1,10 @@
 from rest_framework import generics, viewsets, filters
-from .models import MediaItem, Tag, Event
-from .serializers import MediaItemSerializer, TagSerializer, EventSerializer
+from .models import MediaItem
+from .serializers import MediaItemSerializer, MediaItemReadSerializer
 from .permissions import IsContributorOrReadOnly, IsObjectVerificator
 from users.permissions import IsContributor, IsVerificator
 from rest_framework import permissions
 from rest_framework.response import Response
-
-
-class TagViewSet(viewsets.ModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-
-
-class EventViewSet(viewsets.ModelViewSet):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
 
 
 class MediaItemList(generics.ListAPIView):
@@ -80,12 +70,12 @@ class MediaItemDetail(generics.RetrieveUpdateDestroyAPIView):
         instance.reader_count += 1
         instance.save()
 
-        serializer = self.get_serializer(instance)
+        serializer = MediaItemReadSerializer(instance)
         return Response(serializer.data)
 
 class MediaItemApproveView(generics.RetrieveAPIView):
     queryset = MediaItem.objects.all()
-    serializer_class = MediaItemSerializer
+    serializer_class = MediaItemReadSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerificator]
     
     def retrieve(self, request, *args, **kwargs):
@@ -100,7 +90,7 @@ class MediaItemApproveView(generics.RetrieveAPIView):
 
 class MediaItemRejectView(generics.RetrieveAPIView):
     queryset = MediaItem.objects.all()
-    serializer_class = MediaItemSerializer
+    serializer_class = MediaItemReadSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerificator]
 
     def retrieve(self, request, *args, **kwargs):
@@ -115,7 +105,7 @@ class MediaItemRejectView(generics.RetrieveAPIView):
 
 class MediaItemCancelView(generics.RetrieveAPIView):
     queryset = MediaItem.objects.all()
-    serializer_class = MediaItemSerializer
+    serializer_class = MediaItemReadSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerificator, IsObjectVerificator]
 
     def retrieve(self, request, *args, **kwargs):
