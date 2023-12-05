@@ -116,20 +116,16 @@ class MediaItemTests(TestCase):
         self.assertEqual(created_media_item.title, data["title"])
         self.assertEqual(created_media_item.description, data["description"])
 
-    # def test_tags_applied_correctly(self):
-    #     data = dummy_image_data("test")
-    #     data["tag_names"] = "tag1;tag2;tag3"
-    #     str_date = data["event_date"]
-    #     date_type = date.fromisoformat(str_date)
-    #     data["event_date"] = date_type
-
-    #     media_item = MediaItem.objects.create(**data)
-
-    #     tags = media_item.tags.all()
-
-    #     self.assertEqual(tags[0].name, "tag1")
-    #     self.assertEqual(tags[1].name, "tag2")
-    #     self.assertEqual(tags[2].name, "tag3")
+    def test_media_item_create_with_event_id(self):
+        # Ensure that a new media item can be created
+        data = dummy_image_data("test")
+        data.pop('event_name')
+        data.pop('event_category')
+        data.pop('event_date')
+        data['event'] = self.event.id
+        self.client.force_authenticate(user=self.contributor_user)
+        response = self.client.post("/arsip/create", data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_tags_applied_correctly_using_API(self):
         data = dummy_image_data("test")

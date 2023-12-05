@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 
 class MediaItemList(generics.ListAPIView):
-    serializer_class = MediaItemSerializer
+    serializer_class = MediaItemReadSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = [
         "title",

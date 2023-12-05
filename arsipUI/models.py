@@ -49,7 +49,7 @@ def validate_file_extension(value):
 
 def media_file_path(instance, filename):
     category = get_file_type(filename)
-    event_date = instance.media_items.first().event_date
+    event_date = instance.media_items.first().event.date
     # Define the file path for multimedia uploads
     return f"{category}/{event_date.year}/{event_date.month}/{filename}"
 
