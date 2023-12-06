@@ -26,8 +26,8 @@ class MediaItemList(generics.ListAPIView):
         # Get the sort parameter from the query parameters
         sort_by_reader = self.request.query_params.get("sort_by_reader", False)
 
-        # Get all MediaItems and order them by event_date in descending order
-        queryset = MediaItem.objects.all().order_by("-event_date")
+        # Get all MediaItems and order them by upload_date in descending order
+        queryset = MediaItem.objects.all().order_by("-upload_date")
 
         # Check if the user has requested to sort by reader_count
         if sort_by_reader:
