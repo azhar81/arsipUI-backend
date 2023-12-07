@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import MediaItem, Tag, Event, Event_Category, File
+from users.serializer import UserSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -25,8 +26,10 @@ class FileSerializer(serializers.ModelSerializer):
 
 class MediaItemReadSerializer(serializers.ModelSerializer):
     event = EventSerializer()
-    tags = TagSerializer()
+    tags = TagSerializer(many=True)
     file_paths = FileSerializer(many=True)
+    contributor = UserSerializer()
+    verificator = UserSerializer()
     class Meta:
         model = MediaItem
         fields = [
