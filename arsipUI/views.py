@@ -25,11 +25,18 @@ class MediaItemList(generics.ListAPIView):
         limit = self.request.query_params.get("limit", None)
         # Get the sort parameter from the query parameters
         sort_by_reader = self.request.query_params.get("sort_by_reader", False)
+        # Get the status parameter from the query parameters
+        status = self.request.query_params.get("status", None)
 
         # Get all MediaItems and order them by upload_date in descending order
         queryset = MediaItem.objects.all().order_by("-upload_date")
+        
+        # classify the response by 'status'
+        
 
         # Check if the user has requested to sort by reader_count
+        if status:
+            queryset = queryset.filter(status=status)
         if sort_by_reader:
             queryset = queryset.order_by("-reader_count")
 
@@ -60,8 +67,8 @@ class MediaItemCreate(generics.CreateAPIView):
 
 class MediaItemDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsContributorOrReadOnly]
-    queryset = MediaItem.objects.all()
     serializer_class = MediaItemSerializer
+    queryset = MediaItem.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -70,7 +77,7 @@ class MediaItemDetail(generics.RetrieveUpdateDestroyAPIView):
         instance.reader_count += 1
         instance.save()
 
-        serializer = MediaItemReadSerializer(instance)
+        serializer = MediaItemReadSerializer(instance, context={'request': request})
         return Response(serializer.data)
 
 class MediaItemApproveView(generics.RetrieveAPIView):
