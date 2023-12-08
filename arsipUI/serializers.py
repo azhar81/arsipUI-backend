@@ -1,3 +1,4 @@
+import markdown
 from rest_framework import serializers
 from .models import MediaItem, Tag, Event, Event_Category, File
 from users.serializer import UserSerializer
@@ -30,12 +31,18 @@ class MediaItemReadSerializer(serializers.ModelSerializer):
     file_paths = FileSerializer(many=True)
     contributor = UserSerializer()
     verificator = UserSerializer()
+    formatted_content = serializers.SerializerMethodField()
+    
+    def get_formatted_content(self, instance):
+        return markdown.markdown(instance.description)
+
     class Meta:
         model = MediaItem
         fields = [
             'id',
             'title',
             'description',
+            'formatted_content',
             'upload_date',
             'event',
             'file_paths',

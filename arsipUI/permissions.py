@@ -33,5 +33,5 @@ class IsObjectVerificator(permissions.BasePermission):
             user
             and user.is_authenticated
             and user.userprofile.user_type == "verificator"
-            and user == object_verificator
+            and user.id == object_verificator.id
         )

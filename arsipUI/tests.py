@@ -157,7 +157,7 @@ class MediaItemTests(TestCase):
         response = self.client.get(f'/arsip/{self.media_item.id}/reject')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], "rejected")
-        self.assertEqual(response.data['verificator'].id, self.verificator_user.id)
+        self.assertEqual(response.data['verificator']['id'], self.verificator_user.id)
     
     def test_media_item_cancel_approval(self):
         self.client.force_authenticate(user=self.verificator_user)
