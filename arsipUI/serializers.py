@@ -1,7 +1,7 @@
 import markdown
 from rest_framework import serializers
 from .models import MediaItem, Tag, Event, Event_Category, File
-from users.serializer import UserSerializer
+from users.serializers import UserSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):
