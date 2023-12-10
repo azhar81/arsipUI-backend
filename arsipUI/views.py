@@ -146,6 +146,7 @@ class ContributorMediaItemList(generics.ListAPIView):
     ]
 
     def get_queryset(self):
+        print(self.request.user)
         queryset = MediaItem.objects.filter(contributor=self.request.user).order_by("-upload_date")
         
         return queryset
@@ -157,9 +158,9 @@ class ContributorMediaItemList(generics.ListAPIView):
         approved = queryset.filter(status="approved")
         rejected = queryset.filter(status="rejected")
         
-        waitlist_serializer = MediaItemReadSerializer(waitlist, many=True)
-        approved_serializer = MediaItemReadSerializer(approved, many=True)
-        rejected_serializer = MediaItemReadSerializer(rejected, many=True)
+        waitlist_serializer = MediaItemReadSerializer(waitlist, many=True, context={'request': request})
+        approved_serializer = MediaItemReadSerializer(approved, many=True, context={'request': request})
+        rejected_serializer = MediaItemReadSerializer(rejected, many=True, context={'request': request})
 
         data = {
             'waitlist': waitlist_serializer.data,
