@@ -146,7 +146,6 @@ class ContributorMediaItemList(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        print(self.request.user)
         queryset = MediaItem.objects.filter(contributor=self.request.user).order_by("-upload_date")
         
         return queryset
