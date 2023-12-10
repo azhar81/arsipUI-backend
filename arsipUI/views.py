@@ -1,6 +1,6 @@
 from rest_framework import generics, viewsets, filters
-from .models import MediaItem
-from .serializers import MediaItemSerializer, MediaItemReadSerializer
+from .models import MediaItem, Event, Event_Category
+from .serializers import MediaItemSerializer, MediaItemReadSerializer, EventSerializer, EventCategorySerializer
 from .permissions import IsContributorOrReadOnly, IsObjectVerificator
 from users.permissions import IsContributor, IsVerificator
 from rest_framework import permissions
@@ -124,3 +124,47 @@ class MediaItemCancelView(generics.RetrieveAPIView):
         serializer = self.get_serializer(instance)
         
         return Response(serializer.data)
+
+class EventListView(generics.ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+
+class CategoryListView(generics.ListAPIView):
+    queryset = Event_Category.objects.all()
+    serializer_class = EventCategorySerializer
+
+class ContributorMediaItemList(generics.ListAPIView):
+    serializer_class = MediaItemReadSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        "title",
+        "description",
+        "tags__name",
+        "tag_names",
+        "event_date",
+        "event__name",
+    ]
+
+    def get_queryset(self):
+        queryset = MediaItem.objects.filter(contributor=self.request.user).order_by("-upload_date")
+        
+        return queryset
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        
+        waitlist = queryset.filter(status="waitlist")
+        approved = queryset.filter(status="approved")
+        rejected = queryset.filter(status="rejected")
+        
+        waitlist_serializer = MediaItemReadSerializer(waitlist, many=True)
+        approved_serializer = MediaItemReadSerializer(approved, many=True)
+        rejected_serializer = MediaItemReadSerializer(rejected, many=True)
+
+        data = {
+            'waitlist': waitlist_serializer.data,
+            'approved': approved_serializer.data,
+            'rejected': rejected_serializer.data
+        }
+        
+        return Response(data)

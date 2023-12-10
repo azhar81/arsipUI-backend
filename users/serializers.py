@@ -33,11 +33,3 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     
             return data
 
-# class CustomTokenObtainPairSerializerWithUser(serializers.Serializer):
-#     token = CustomTokenObtainPairSerializer()
-#     user = UserSerializer(read_only=True)  # Use source='user' to access the user object
-
-#     def validate(self, attrs):
-#         data = super().validate(attrs)
-#         data['user'] = UserSerializer(self.context['user']).data
-#         return data

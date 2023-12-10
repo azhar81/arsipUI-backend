@@ -23,7 +23,7 @@ class EventSerializer(serializers.ModelSerializer):
 class FileSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = "__all__"
+        fields = ['file', 'id']
 
 class MediaItemReadSerializer(serializers.ModelSerializer):
     event = EventSerializer()

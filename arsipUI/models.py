@@ -114,14 +114,6 @@ class MediaItem(models.Model):
                 Tag.objects.get_or_create(name=tag_name)[0] for tag_name in tag_names
             ]
             self.tags.set(tags)
-    
-    # def handle_files(self, **args):
-    #     # Populate file_paths based on input
-    #     for file_path in self.file_paths.all():
-    #         file_instance = File.objects.create()
-    #         self.file_paths.add(file_instance)
-    #         file_instance.file = file_path
-    #         file_instance.save()
 
     def __str__(self):
         return self.title
