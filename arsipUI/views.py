@@ -95,18 +95,22 @@ class MediaItemApproveView(generics.RetrieveAPIView):
         
         return Response(serializer.data)
 
-class MediaItemRejectView(generics.RetrieveAPIView):
+class MediaItemRejectView(generics.UpdateAPIView):
     queryset = MediaItem.objects.all()
-    serializer_class = MediaItemReadSerializer
+    serializer_class = MediaItemSerializer
     permission_classes = [permissions.IsAuthenticated, IsVerificator]
 
-    def retrieve(self, request, *args, **kwargs):
+    def patch(self, request, pk):
         instance = self.get_object()
         instance.status = "rejected"
         instance.verificator = request.user
+        
         instance.save()
         
-        serializer = self.get_serializer(instance)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
         
         return Response(serializer.data)
 
@@ -133,7 +137,7 @@ class CategoryListView(generics.ListAPIView):
     queryset = Event_Category.objects.all()
     serializer_class = EventCategorySerializer
 
-class ContributorMediaItemList(generics.ListAPIView):
+class AuthenticatedMediaItemList(generics.ListAPIView):
     serializer_class = MediaItemReadSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = [
@@ -146,14 +150,19 @@ class ContributorMediaItemList(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        queryset = MediaItem.objects.filter(contributor=self.request.user).order_by("-upload_date")
+        queryset = MediaItem.objects.all().order_by("-upload_date")
         
         return queryset
         
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        if request.user.userprofile.user_type == 'contributor':
+            queryset = queryset.filter(contributor = request.user)
         
         waitlist = queryset.filter(status="waitlist")
+        if request.user.userprofile.user_type == 'verificator':
+            queryset = queryset.filter(verificator = request.user)
+
         approved = queryset.filter(status="approved")
         rejected = queryset.filter(status="rejected")
         

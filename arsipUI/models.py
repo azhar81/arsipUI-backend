@@ -97,6 +97,7 @@ class MediaItem(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     reader_count = models.IntegerField(default=0, editable=False)
+    reject_reason = models.TextField(blank=True)
 
     # Additional field to receive a user input for non-existing field objects
     event_name = models.CharField(max_length=255, blank=True)

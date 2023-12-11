@@ -48,6 +48,7 @@ class MediaItemReadSerializer(serializers.ModelSerializer):
             'file_paths',
             'tags',
             'status',
+            'reject_reason',
             'reader_count',
             'contributor',
             'verificator',

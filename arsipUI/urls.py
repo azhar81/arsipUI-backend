@@ -1,11 +1,11 @@
 from django.urls import path
 from .views import MediaItemList, MediaItemDetail, MediaItemCreate, \
     MediaItemApproveView, MediaItemRejectView, MediaItemCancelView, \
-    EventListView, CategoryListView, ContributorMediaItemList
+    EventListView, CategoryListView, AuthenticatedMediaItemList
 
 urlpatterns = [
     path("", MediaItemList.as_view(), name="media-list"),
-    path("user", ContributorMediaItemList.as_view(), name="user-media-list"),
+    path("user", AuthenticatedMediaItemList.as_view(), name="user-media-list"),
     path("events", EventListView.as_view(), name="events-list"),
     path("categories", CategoryListView.as_view(), name="category-list"),
     path("create", MediaItemCreate.as_view(), name="media-create"),
