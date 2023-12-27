@@ -1,3 +1,5 @@
+from django.http import JsonResponse
+from django.views import View
 from rest_framework import generics, viewsets, filters
 from .models import MediaItem, Event, Event_Category
 from .serializers import MediaItemSerializer, MediaItemReadSerializer, EventSerializer, EventCategorySerializer
@@ -5,6 +7,7 @@ from .permissions import IsOwnerOrReadOnly, IsObjectVerificator
 from users.permissions import IsContributor, IsVerificator
 from rest_framework import permissions
 from rest_framework.response import Response
+
 
 
 class MediaItemList(generics.ListAPIView):
@@ -136,6 +139,15 @@ class EventListView(generics.ListAPIView):
 class CategoryListView(generics.ListAPIView):
     queryset = Event_Category.objects.all()
     serializer_class = EventCategorySerializer
+
+class FakultasListView(generics.ListAPIView):
+    def get(self, request, *args, **kwargs):
+        fakultas_choices = MediaItem.FAKULTAS_CHOICES
+
+        data = [{'value': choice[0], 'label': choice[1]} for choice in fakultas_choices]
+
+        return JsonResponse(data, safe=False)
+        
 
 class AuthenticatedMediaItemList(generics.ListAPIView):
     serializer_class = MediaItemReadSerializer
