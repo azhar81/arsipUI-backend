@@ -42,6 +42,7 @@ class MediaItemReadSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'description',
+            'fakultas',
             'formatted_content',
             'upload_date',
             'event',

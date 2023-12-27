@@ -70,6 +70,27 @@ class MediaItem(models.Model):
         (APPROVED, "Approved"),
         (REJECTED, "Rejected"),
     ]
+    
+    FAKULTAS_CHOICES = [
+        ('FK', 'Fakultas Kedokteran'),
+        ('FF', 'Fakultas Farmasi'),
+        ('FIPB', 'Fakultas Ilmu Pengetahuan Budaya'),
+        ('FH', 'Fakultas Hukum'),
+        ('FT', 'Fakultas Teknik'),
+        ('FEB', 'Fakultas Ekonomi dan Bisnis'),
+        ('FISIP', 'Fakultas Ilmu Sosial dan Ilmu Politik'),
+        ('FPsi', 'Fakultas Psikologi'),
+        ('Fasilkom', 'Fakultas Ilmu Komputer'),
+        ('FMIPA', 'Fakultas Matematika Dan Ilmu Pengetahuan Alam'),
+        ('FIB', 'Fakultas Ilmu Budaya'),
+        ('FKM', 'Fakultas Kesehatan Masyarakat'),
+        ('FKG', 'Fakultas Kedokteran Gigi'),
+        ('FIK', 'Fakultas Ilmu Keperawatan'),
+        ('FIA', 'Fakultas Ilmu Administrasi'),
+        ('PPV', 'Program Pendidikan Vokasi'),
+        ('SIL', 'Sekolah Ilmu Pengetahuan'),
+        ('SKSG', 'Sekolah Kajian Stratejik dan Global')        
+    ]
 
     title = models.CharField(max_length=255)
     contributor = models.ForeignKey(
@@ -93,6 +114,7 @@ class MediaItem(models.Model):
     description = models.TextField()
     file_paths = models.ManyToManyField(File, related_name='media_items')
     upload_date = models.DateTimeField(auto_now_add=True)
+    fakultas = models.CharField(max_length=8, choices=FAKULTAS_CHOICES, blank=True)
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)

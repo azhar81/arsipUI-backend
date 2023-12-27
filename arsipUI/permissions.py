@@ -14,9 +14,14 @@ class IsContributorOrReadOnly(permissions.BasePermission):
             and request.user.userprofile.user_type == "contributor"
         )
 
-class IsOwner(permissions.BasePermission):
+class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Allow read-only permissions for any request
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
         # Check if the user making the request is the contributor of the media item
+        print(obj)
         return (
             request.user
             and request.user.is_authenticated

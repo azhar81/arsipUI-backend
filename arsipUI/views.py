@@ -1,7 +1,7 @@
 from rest_framework import generics, viewsets, filters
 from .models import MediaItem, Event, Event_Category
 from .serializers import MediaItemSerializer, MediaItemReadSerializer, EventSerializer, EventCategorySerializer
-from .permissions import IsContributorOrReadOnly, IsObjectVerificator
+from .permissions import IsOwnerOrReadOnly, IsObjectVerificator
 from users.permissions import IsContributor, IsVerificator
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -58,7 +58,7 @@ class MediaItemList(generics.ListAPIView):
 class MediaItemCreate(generics.CreateAPIView):
     queryset = MediaItem.objects.all()
     serializer_class = MediaItemSerializer
-    permission_classes = [permissions.IsAuthenticated, IsContributor]
+    permission_classes = [IsContributor]
 
     def perform_create(self, serializer):
         # Attach the current user as the contributor
@@ -66,7 +66,7 @@ class MediaItemCreate(generics.CreateAPIView):
 
 
 class MediaItemDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsContributorOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
     serializer_class = MediaItemSerializer
     queryset = MediaItem.objects.all()
 
