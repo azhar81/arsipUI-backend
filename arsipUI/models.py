@@ -49,13 +49,19 @@ def validate_file_extension(value):
 
 def media_file_path(instance, filename):
     category = get_file_type(filename)
+    instance.file_type = category
     event_date = instance.media_items.first().event.date
     # Define the file path for multimedia uploads
     return f"{category}/{event_date.year}/{event_date.month}/{filename}"
 
 class File(models.Model):
+    FILE_TYPE = [
+        ("img", "Images"),
+        ("vid", "Videos"),
+        ("doc", "Documents")
+    ]
     file = models.FileField(upload_to=media_file_path, validators=[validate_file_extension], blank=True)
-    # media_item = models.ForeignKey(MediaItem, on_delete=models.CASCADE)
+    file_type = models.CharField(choices=FILE_TYPE, max_length=3, editable=False)
 
     def __str__(self):
         return self.file.name
