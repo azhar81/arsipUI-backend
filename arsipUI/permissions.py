@@ -26,6 +26,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             request.user
             and request.user.is_authenticated
             and request.user.userprofile.user_type == "contributor"
+            and obj.contributor == request.user
         )
 
 class IsObjectVerificator(permissions.BasePermission):
